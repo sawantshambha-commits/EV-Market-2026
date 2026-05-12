@@ -5,29 +5,78 @@ select * from ev_market_2026;
 alter table ev_market_2026
 rename ev_market;
 -- ⚙️ Basic-Level (Data Familiarity)
--- Retrieve all Tesla models launched after 2023.
+-- 1.Retrieve all Tesla models launched after 2023.
+ select * from ev_market
+ where brand = "Tesla" and year > 2023
+ order by year;
 
+-- 2. List all distinct EV brands available in the dataset.
+select brand from ev_market
+group by brand
+order by brand;
 
--- List all distinct EV brands available in the dataset.
+-- 3. Show the model name and price of the most expensive EV.
+select brand, model, price_usd from ev_market
+order by price_usd desc
+limit 1;
 
--- Show the model name and price of the most expensive EV.
+-- 4. Find all EVs priced below $50,000.
+select * from ev_market
+where price_usd < 50000
+order by price_usd;
 
--- Find all EVs priced below $50,000.
-
--- Count how many EVs were launched in each year.
+-- 5 Count how many EVs were launched in each year.
+select year, count(*) as Total_EVs_Launch
+from ev_market
+group by year
+order by year;
 
 -- 📊 Intermediate-Level (Aggregations & Analysis)
 -- These simulate business insights questions.
 
--- Calculate the average price of EVs by brand.
+-- 6 Calculate the average price of EVs by brand.
+select brand, round(avg(price_usd), 02) as avg_price
+from ev_market
+group by brand
+order by avg_price;
 
--- Find the cheapest variant for each brand.
+-- 7 Find the cheapest variant for each brand.
+with abc as (select brand,model, variant, price_usd , 
+rank() over (partition by brand order by price_usd asc) as lowest_price from ev_market)
+select * from abc
+where lowest_price = 1
+order by brand;
 
--- Display the top 3 most expensive EVs overall.
+SELECT brand,
+       variant,
+       price_usd
+FROM ev_market
+WHERE (brand, price_usd) IN (
+    SELECT brand,
+           MIN(price_usd)
+    FROM ev_market
+    GROUP BY brand
+)
+ORDER BY price_usd ASC;
 
--- Identify which year had the highest average EV price.
 
--- Show the total number of models per brand and sort by count descending.
+
+-- 8 Display the top 3 most expensive EVs overall.
+select * from ev_market
+order by price_usd desc
+limit 3;
+
+-- 9 Identify which year had the highest average EV price.
+select year, round(avg(price_usd), 02) as avg_price from ev_market
+group by year
+order by avg_price desc
+limit 1;
+
+-- 10 Show the total number of models per brand and sort by count descending.
+select brand, count(model) as Total_Numbers
+from ev_market
+group by brand
+order by Total_Numbers desc;
 
 -- Find the price difference between Tesla’s “Model 3” and “Model Y”.
 
